@@ -13,7 +13,7 @@ class Board {
 
     // mouse drag tracking
     this.isDragging = false;
-    this.dragStart = {x: 0, y: 0}
+    this.dragStart = {x: 0, y: 0};
 
     // board event handlers
     canvas.addEventListener('mousedown', this.onPointerDown.bind(this));
@@ -25,7 +25,7 @@ class Board {
     this.gameFrame = 0;
     
     // begin drawing
-    this.draw()
+    this.draw();
     }
   
   // draw the board
@@ -52,20 +52,26 @@ class Board {
 
     
     meanie.draw(this.gameFrame);
+    if (this.gameFrame <= meanie.frameStagger * 14) {
+      baddie.draw(this.gameFrame);
+    }
     this.gameFrame += 1;
 
-    if (this.gameFrame == meanie.frameStagger * 4) {
+    if (this.gameFrame == meanie.frameStagger * 3) {
       meanie.maxAnims = 3
-      meanie.changeSkin(0);
-    }
-    if (this.gameFrame == meanie.frameStagger * 10) {
       meanie.changeSkin(1);
     }
-    if (this.gameFrame == meanie.frameStagger * 20) {
-      meanie.maxAnims = 7;
+    if (this.gameFrame == meanie.frameStagger * 9) {
       meanie.changeSkin(2);
+      baddie.changeSkin(1);
+      baddie.y = baddie.y - 92;
+      baddie.frameSize = '74';
     }
-    if (this.gameFrame % 5 == 0 && this.gameFrame > meanie.frameStagger *20) meanie.x++;
+    if (this.gameFrame == meanie.frameStagger * 15) {
+      meanie.maxAnims = 7;
+      meanie.changeSkin(3);
+    }
+    if (this.gameFrame % 5 == 0 && this.gameFrame > meanie.frameStagger *15) meanie.x++;
 
     window.requestAnimationFrame(this.draw.bind(this));
   }
@@ -111,47 +117,57 @@ class Board {
 }
 
 class Sprite {
-  constructor() {
-    this.x = -125;
-    this.y = -50;
+  constructor(sprite, x, y, frameSize, skinFiles, scrollLeft) {
+    this.sprite = sprite;
+    this.x = x;
+    this.y = y;
     this.frameX = 0;
     this.frameY = 0;
-    this.maxAnims = 4;
+    this.frameSize = frameSize;
+    if (!this.scrollLeft) {
+      this.frame = this.frameY;
+    }
+    else {
+      this.frame = this.frameX;
+    }
+    /*
+    this.spriteWidth = spriteWidth;
+    this.spriteHeight = spriteHeight;
+    */
+    this.maxAnims = 3;
     this.frameStagger = 30;
-    this.skinFile = ['charge', 'shootFX', 'moveFX'];
+    this.skinFile = skinFiles;
+    this.scrollLeft = scrollLeft;
+    this.changeSkin(0);
   }
   changeSkin(i) {
-    sprite.src = `static/${this.skinFile[i]}.png`;
+    this.frame = 0;
+    this.sprite.src = `static/${this.skinFile[i]}.png`;
   }
   draw(gameFrame) {
-    this.frameHeight = '26';
-    
-
     // stagger animation change
     if (gameFrame % this.frameStagger == 0) {
-      console.log(`frame y ${this.frameHeight}`);
-      if (this.frameY < this.maxAnims) {
-        this.frameY++;
+      console.log(`frame: ${this.frame}`);
+      if (this.frame < this.maxAnims) {
+        this.frame++;
       }
-      else this.frameY = 0;
+      else this.frame = 0;
     }
     
-    ctx.drawImage(sprite, 0, this.frameHeight * this.frameY, sprite.width, this.frameHeight, this.x, this.y, sprite.width * 2, 52);
-  }
-}
-
-
-// player class
-class Player {
-  constructor() {
-    // to do
+    if (!this.scrollLeft) {
+      ctx.drawImage(this.sprite, 0, this.frameSize * this.frame, this.sprite.width, this.frameSize, this.x, this.y, this.sprite.width * 2, this.frameSize * 2);
+    }
+    else ctx.drawImage(this.sprite, this.frameSize * this.frame, 0, this.frameSize, this.sprite.height, this.x, this.y, this.frameSize, this.sprite.height);
   }
 }
 
 
 var canvas = document.getElementById("map");
 var ctx = canvas.getContext("2d");
-var sprite = document.getElementById('sprite');
-let meanie = new Sprite();
+var sprite1 = document.getElementById('sprite1');
+var sprite2 = document.getElementById('sprite2');
+let meanie = new Sprite(sprite1, -125, -50, '26', ['wake', 'charge', 'shootFX', 'moveFX'], false);
+let baddie = new Sprite(sprite2, 125, -70, '55', ['Hell-Beast-Files/PNG/without-stroke/hell-beast-idle', 'Hell-Beast-Files/PNG/without-stroke/hell-beast-burn'], true);
+baddie.maxAnims = 5;
 let map = new Board();
 
